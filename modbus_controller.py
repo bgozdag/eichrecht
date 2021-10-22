@@ -55,6 +55,6 @@ class ModbusController:
         data = self.client.execute(
             UNIT_ID, defines.READ_HOLDING_REGISTERS, reg.address, reg.length)
         return self._convert_from_uint16(reg.data_type, data)
-    
+
     def write(self, reg: Register, data):
         self.client.execute(UNIT_ID, defines.WRITE_MULTIPLE_REGISTERS, reg.address, output_value=self._convert_to_uint16(data))
