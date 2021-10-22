@@ -25,11 +25,9 @@ class App:
 
     def query_metrics(self):
         while True:
-            logger.info("Voltage: {}".format(self.mc.read(self.device.voltage)))
-            logger.info("VoltageL1: {}".format(self.mc.read(self.device.voltageL1)))
-            logger.info("VoltageL2: {}".format(self.mc.read(self.device.voltageL2)))
-            logger.info("VoltageL3: {}".format(self.mc.read(self.device.voltageL3)))
-            time.sleep(0.1)
+            voltage = self.mc.get_voltage(self.device.voltage, self.device.voltageL3)
+            for i, v in enumerate(voltage):
+                logger.info("Voltage{}: {}".format(i, v))
 
 
 if __name__ == "__main__":
