@@ -35,3 +35,7 @@ class Bauer(Device):
         self.version = Register(40044, 8, DataType.STRING)
         self.serial_number = Register(40052, 16, DataType.STRING)
         self.baud_rate = Register(40082, 2, DataType.UINT32)
+        self.voltage = Register(40113, 1, DataType.UINT16)
+        self.voltageL1 = Register(40114, 1, DataType.UINT16)
+        self.voltageL2 = Register(40115, 1, DataType.UINT16)
+        self.voltageL3 = Register(40116, 1, DataType.UINT16)

@@ -23,7 +23,7 @@ class ModbusController:
         if data_type == DataType.INT16 or data_type == DataType.UINT16:
             return data[0]
         elif data_type == DataType.UINT32:
-            return data[0] * 2**8 + data[1]
+            return data[0] * 2**16 + data[1]
         elif data_type == DataType.STRING:
             string = ""
             for i in data:
