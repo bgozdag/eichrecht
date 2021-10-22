@@ -19,18 +19,25 @@ class ModbusController:
         self.client.set_verbose(True)
         logger.info("connected")
 
-    def _convert_data(self, data_type: DataType, data):
+    def _convert_data_from(self, data_type: DataType, data):
         if data_type == DataType.INT16 or data_type == DataType.UINT16:
             return data[0]
         elif data_type == DataType.UINT32:
             return data[0] * 2**8 + data[1]
         elif data_type == DataType.STRING:
-            return "".join([chr(i) for i in data])
+            string = ""
+            for i in data:
+                q, r = divmod(i)
+                string += chr(q) + chr(r)
+            return string
 
     def read(self, reg: Register):
         try:
             data = self.client.execute(
                 UNIT_ID, defines.READ_HOLDING_REGISTERS, reg.address, reg.length)
-            return self._convert_data(reg.data_type, data)
+            return self._convert_data_from(reg.data_type, data)
         except Exception as e:
             logger.exception(e)
+    
+    def write(self, reg: Register, data):
+        self.client.execute(UNIT_ID, defines.WRITE_MULTIPLE_REGISTERS, reg.address, output_value=0)
