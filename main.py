@@ -1,7 +1,7 @@
 import time
 from modbus_tk import modbus
 from modbus_controller import ModbusController
-from definitions import Bauer, SnapshotStatus
+from definitions import Bauer, Register, SnapshotStatus
 from modbus_controller import logger
 
 
@@ -16,11 +16,13 @@ class App:
         except Exception as e:
             logger.error(e)
         finally:
+            logger.info("Current Time: {}".format(time.ctime(self.mc.read(self.device.epoch_time))))
             logger.info("Manufacturer: {}".format(self.mc.read(self.device.manufacturer)))
             logger.info("Model: {}".format(self.mc.read(self.device.model)))
             logger.info("Options: {}".format(self.mc.read(self.device.options)))
             logger.info("Version: {}".format(self.mc.read(self.device.version)))
             logger.info("Serial number: {}".format(self.mc.read(self.device.serial_number)))
+            self.get_snapshot(self.device.ocmfStatus, self.device.ocmfSignature)
             self.query_metrics()
 
     def query_metrics(self):
@@ -36,17 +38,19 @@ class App:
                 logger.info("Power{}: {}".format(i, p))
             logger.info("Energy: {}".format(self.mc.read(self.device.energy)))
     
-    def get_snapshot(self):
-        status = self.mc.read(self.device.ocmfStatus)
-        if status == SnapshotStatus.UPDATE:
-            logger.info("update already in progress")
+    def get_snapshot(self, status: Register, signature: Register):
+        status = self.mc.read(status)
+        if status == SnapshotStatus.UPDATE.value:
+            logger.info("Update already in progress")
             return
-        self.mc.write(self.device.ocmfStatus, SnapshotStatus.UPDATE)
-        status = self.mc.read(self.device.ocmfStatus)
-        while status == SnapshotStatus.UPDATE:
-            status = self.mc.read(self.device.ocmfStatus)
-        if status == SnapshotStatus.VALID:
-            logger.info("Signature: {}".format(self.mc.read(self.device.ocmfSignature)))
+        self.mc.write(status, SnapshotStatus.UPDATE.value)
+        status = self.mc.read(status)
+        while status == SnapshotStatus.UPDATE.value:
+            status = self.mc.read(status)
+        if status == SnapshotStatus.VALID.value:
+            logger.info("Signature: {}".format(self.mc.read(signature)))
+        else:
+            logger.error("Snapshot failed: {}".format(SnapshotStatus(status).name))
 
 
 if __name__ == "__main__":

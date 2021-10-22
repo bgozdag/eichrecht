@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from enum import Enum
 
 class DataType(Enum):
@@ -43,6 +43,7 @@ class Bauer(Device):
         self.version = Register(40044, 8, DataType.STRING)
         self.serial_number = Register(40052, 16, DataType.STRING)
         self.baud_rate = Register(40082, 2, DataType.UINT32)
+        self.epoch_time = Register(40260, 2, DataType.UINT32)
         self.voltageL1 = Register(40098, 1, DataType.UINT16)
         self.voltageL2 = Register(40099, 1, DataType.UINT16)
         self.voltageL3 = Register(40100, 1, DataType.UINT16)
