@@ -1,4 +1,4 @@
-from .modbus_controller import ModbusController
+from modbus_controller import ModbusController
 
 def main():
     mc = ModbusController()
