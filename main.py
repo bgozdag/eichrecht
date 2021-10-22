@@ -38,17 +38,17 @@ class App:
                 logger.info("Power{}: {}".format(i, p))
             logger.info("Energy: {}".format(self.mc.read(self.device.energy)))
     
-    def get_snapshot(self, status: Register, signature: Register):
-        status = self.mc.read(status)
+    def get_snapshot(self, reg_status: Register, reg_signature: Register):
+        status = self.mc.read(reg_status)
         if status == SnapshotStatus.UPDATE.value:
             logger.info("Update already in progress")
             return
-        self.mc.write(status, SnapshotStatus.UPDATE.value)
-        status = self.mc.read(status)
+        self.mc.write(reg_status, SnapshotStatus.UPDATE.value)
+        status = self.mc.read(reg_status)
         while status == SnapshotStatus.UPDATE.value:
-            status = self.mc.read(status)
+            status = self.mc.read(reg_status)
         if status == SnapshotStatus.VALID.value:
-            logger.info("Signature: {}".format(self.mc.read(signature)))
+            logger.info("Signature: {}".format(self.mc.read(reg_signature)))
         else:
             logger.error("Snapshot failed: {}".format(SnapshotStatus(status).name))
 
