@@ -55,7 +55,7 @@ class ModbusController:
         self.client = modbus_rtu.RtuMaster(serial.Serial(
             port=PORT, baudrate=max_baud_rate, bytesize=BYTESIZE, parity=PARITY_EVEN, stopbits=STOPBITS_ONE))
 
-    def get_voltage(self, reg_start: Register, reg_end: Register):
+    def read_in_between(self, reg_start: Register, reg_end: Register):
         return self.client.execute(
             UNIT_ID, defines.READ_HOLDING_REGISTERS, reg_start.address, reg_end.address - reg_start.address + 1)
 
