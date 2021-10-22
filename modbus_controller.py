@@ -16,7 +16,7 @@ class ModbusController:
         self.client = modbus_rtu.RtuMaster(serial.Serial(
             port=PORT, baudrate=max_baud_rate, bytesize=BYTESIZE, parity=PARITY_EVEN, stopbits=STOPBITS_ONE))
         self.client.set_timeout(5.0)
-        self.client.set_verbose(True)
+        # self.client.set_verbose(True)
         logger.info("connected")
 
     def _convert_from_uint16(self, data_type: DataType, data):

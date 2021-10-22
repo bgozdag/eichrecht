@@ -9,6 +9,14 @@ class DataType(Enum):
     UINT16 = "uint16"
     UINT32 = "uint32"
 
+class SnapshotStatus(Enum):
+    VALID = 0
+    INVALID = 1
+    UPDATE = 2
+    FAILED_GENERAL_ERROR = 3
+    FAILED_NO_CHARGE_RELEASE = 4
+    FAILED_INCORRECT_FEEDBACK = 5
+
 class Register:
     """Register base class"""
 
@@ -47,3 +55,5 @@ class Bauer(Device):
         self.powerL2 = Register(40110, 1, DataType.UINT16)
         self.powerL3 = Register(40111, 1, DataType.UINT16)
         self.energy = Register(40136, 2, DataType.UINT32)
+        self.ocmfStatus = Register(41794, 1, DataType.UINT16)
+        self.ocmfSignature = Register(41795, 496, DataType.UINT16)

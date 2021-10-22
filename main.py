@@ -1,7 +1,7 @@
 import time
 from modbus_tk import modbus
 from modbus_controller import ModbusController
-from definitions import Bauer
+from definitions import Bauer, SnapshotStatus
 from modbus_controller import logger
 
 
@@ -35,6 +35,18 @@ class App:
             for i, p in enumerate(power):
                 logger.info("Power{}: {}".format(i, p))
             logger.info("Energy: {}".format(self.mc.read(self.device.energy)))
+    
+    def get_snapshot(self):
+        status = self.mc.read(self.device.ocmfStatus)
+        if status == SnapshotStatus.UPDATE:
+            logger.info("update already in progress")
+            return
+        self.mc.write(self.device.ocmfStatus, SnapshotStatus.UPDATE)
+        status = self.mc.read(self.device.ocmfStatus)
+        while status == SnapshotStatus.UPDATE:
+            status = self.mc.read(self.device.ocmfStatus)
+        if status == SnapshotStatus.VALID:
+            logger.info("Signature: {}".format(self.mc.read(self.device.ocmfSignature)))
 
 
 if __name__ == "__main__":
