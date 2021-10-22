@@ -45,16 +45,26 @@ class ModbusController:
         return result
 
 
-    def reset_connection(self):
+    def set_baud_rate(self, reg: Register, max_baud_rate):
+        current_baud_rate = self.read(reg.baud_rate)
+        logger.info("Baud rate: {}".format(current_baud_rate))
+        if current_baud_rate == max_baud_rate:
+            return
         self.client.close()
         self.client = modbus_rtu.RtuMaster(serial.Serial(
             port=PORT, baudrate=DEFAULT_BAUDRATE, bytesize=BYTESIZE, parity=PARITY_EVEN, stopbits=STOPBITS_ONE))
+        self.mc.write(self.device.baud_rate, max_baud_rate)
+        logger.info("Baud rate set to: max_baud_rate")
+        self.client.close()
+        self.client = modbus_rtu.RtuMaster(serial.Serial(
+            port=PORT, baudrate=max_baud_rate, bytesize=BYTESIZE, parity=PARITY_EVEN, stopbits=STOPBITS_ONE))
+        
 
 
     def read(self, reg: Register):
         data = self.client.execute(
             UNIT_ID, defines.READ_HOLDING_REGISTERS, reg.address, reg.length)
         return self._convert_from_uint16(reg.data_type, data)
-    
+
     def write(self, reg: Register, data):
         self.client.execute(UNIT_ID, defines.WRITE_MULTIPLE_REGISTERS, reg.address, output_value=self._convert_to_uint16(data))
