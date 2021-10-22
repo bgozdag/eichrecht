@@ -46,15 +46,11 @@ class ModbusController:
 
 
     def set_baud_rate(self, reg: Register, max_baud_rate):
-        current_baud_rate = self.read(reg)
-        logger.info("Baud rate: {}".format(current_baud_rate))
-        if current_baud_rate == max_baud_rate:
-            return
         self.client.close()
         self.client = modbus_rtu.RtuMaster(serial.Serial(
             port=PORT, baudrate=DEFAULT_BAUDRATE, bytesize=BYTESIZE, parity=PARITY_EVEN, stopbits=STOPBITS_ONE))
         self.write(reg, max_baud_rate)
-        logger.info("Baud rate set to: max_baud_rate")
+        logger.info("Baud rate set to: {}".format(max_baud_rate))
         self.client.close()
         self.client = modbus_rtu.RtuMaster(serial.Serial(
             port=PORT, baudrate=max_baud_rate, bytesize=BYTESIZE, parity=PARITY_EVEN, stopbits=STOPBITS_ONE))

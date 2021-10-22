@@ -9,6 +9,7 @@ class App:
         self.device = Bauer()
         self.mc = ModbusController(self.device.MAX_BAUD_RATE)
         try:
+            logger.info("Baud rate: {}".format(self.mc.read(self.device.baud_rate)))
             logger.info("Manufacturer: {}".format(self.mc.read(self.device.manufacturer)))
             logger.info("Model: {}".format(self.mc.read(self.device.model)))
             logger.info("Options: {}".format(self.mc.read(self.device.options)))
