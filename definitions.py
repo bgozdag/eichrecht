@@ -24,6 +24,7 @@ class Device(ABC):
 
 class Bauer(Device):
     """Bauer device"""
+    MAX_BAUD_RATE = 115200
 
     def __init__(self) -> None:
         """Constructor"""
