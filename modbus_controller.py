@@ -53,7 +53,7 @@ class ModbusController:
         self.client.close()
         self.client = modbus_rtu.RtuMaster(serial.Serial(
             port=PORT, baudrate=DEFAULT_BAUDRATE, bytesize=BYTESIZE, parity=PARITY_EVEN, stopbits=STOPBITS_ONE))
-        self.mc.write(reg, max_baud_rate)
+        self.write(reg, max_baud_rate)
         logger.info("Baud rate set to: max_baud_rate")
         self.client.close()
         self.client = modbus_rtu.RtuMaster(serial.Serial(
