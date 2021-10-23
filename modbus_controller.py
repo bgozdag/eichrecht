@@ -1,4 +1,4 @@
-from modbus_tk import modbus_rtu, utils, defines
+from modbus_tk import modbus_rtu, utils, defines, exceptions
 import serial
 from serial.serialutil import PARITY_EVEN, STOPBITS_ONE
 from definitions import DataType, Register
@@ -66,4 +66,7 @@ class ModbusController:
         return self._convert_from_uint16(reg.data_type, data)
 
     def write(self, reg: Register, data):
-        self.client.execute(UNIT_ID, defines.WRITE_MULTIPLE_REGISTERS, reg.address, output_value=self._convert_to_uint16(data))
+        try:
+            self.client.execute(UNIT_ID, defines.WRITE_MULTIPLE_REGISTERS, reg.address, output_value=self._convert_to_uint16(data))
+        except exceptions.ModbusError as e:
+            logger.error(e)
