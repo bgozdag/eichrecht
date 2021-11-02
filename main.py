@@ -20,7 +20,7 @@ class App:
             logger.info("Options: {}".format(self.modbus_controller.read(self.device.options)))
             logger.info("Version: {}".format(self.modbus_controller.read(self.device.version)))
             logger.info("Serial number: {}".format(self.modbus_controller.read(self.device.serial_number)))
-            self.get_snapshot(self.device.ocmfStatus, self.device.ocmfSignature)
+            # self.get_snapshot(self.device.ocmfStatus, self.device.ocmfSignature)
             self.query_metrics()
 
     def query_metrics(self):
