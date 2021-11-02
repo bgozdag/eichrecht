@@ -14,6 +14,7 @@ class App:
         except modbus.ModbusInvalidResponseError:
             self.modbus_controller.set_baud_rate(self.device.baud_rate, self.device.MAX_BAUD_RATE)
         finally:
+            self.modbus_controller.set_time(self.device.epoch_time)
             logger.info("Manufacturer: {}".format(self.modbus_controller.read(self.device.manufacturer)))
             logger.info("Model: {}".format(self.modbus_controller.read(self.device.model)))
             logger.info("Options: {}".format(self.modbus_controller.read(self.device.options)))
