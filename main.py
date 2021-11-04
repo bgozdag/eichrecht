@@ -14,13 +14,13 @@ class App:
         except modbus.ModbusInvalidResponseError:
             self.modbus_controller.set_baud_rate(self.device.baud_rate, self.device.MAX_BAUD_RATE)
         finally:
-            # logger.info("Manufacturer: {}".format(self.modbus_controller.read(self.device.manufacturer)))
-            # logger.info("Model: {}".format(self.modbus_controller.read(self.device.model)))
-            # logger.info("Options: {}".format(self.modbus_controller.read(self.device.options)))
-            # logger.info("Version: {}".format(self.modbus_controller.read(self.device.version)))
-            # logger.info("Serial number: {}".format(self.modbus_controller.read(self.device.serial_number)))
-            # self.modbus_controller.set_time(self.device.epoch_time)
-            # self.get_snapshot(self.device.snapshot_status)
+            logger.info("Manufacturer: {}".format(self.modbus_controller.read(self.device.manufacturer)))
+            logger.info("Model: {}".format(self.modbus_controller.read(self.device.model)))
+            logger.info("Options: {}".format(self.modbus_controller.read(self.device.options)))
+            logger.info("Version: {}".format(self.modbus_controller.read(self.device.version)))
+            logger.info("Serial number: {}".format(self.modbus_controller.read(self.device.serial_number)))
+            self.modbus_controller.set_time(self.device.epoch_time)
+            self.get_snapshot(self.device.snapshot_status)
             self.query_metrics()
 
     def query_metrics(self):
