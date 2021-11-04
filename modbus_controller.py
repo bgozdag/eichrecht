@@ -71,14 +71,14 @@ class ModbusController:
             UNIT_ID, defines.READ_HOLDING_REGISTERS, reg_start.address, reg_end.address - reg_start.address + 1)
 
     def read(self, reg: Register):
-        logger.info("Reading from: {}".format(reg.address))
+        logger.info("Reading from: {}".format(reg.name))
         data = self.client.execute(
             UNIT_ID, defines.READ_HOLDING_REGISTERS, reg.address, reg.length)
         return self._convert_from_uint16(reg.data_type, data)
 
     def write(self, reg: Register, data):
         try:
-            logger.info("Writing '{}' to: {}".format(data, reg.address))
+            logger.info("Writing '{}' to: {}".format(data, reg.name))
             self.client.execute(UNIT_ID, defines.WRITE_MULTIPLE_REGISTERS,
                                 reg.address, output_value=self._convert_to_uint16(data, reg.length))
         except exceptions.ModbusError as e:
@@ -95,7 +95,7 @@ class ModbusController:
                 UNIT_ID, defines.WRITE_MULTIPLE_REGISTERS, reg.address, output_value=output)
         except exceptions.ModbusError as e:
             logger.error(e)
-    
+
     def get_ocmf(self, reg: Register):
         size = reg.length
         address = reg.address
@@ -107,5 +107,5 @@ class ModbusController:
             size -= 125
             address += 125
         return result
-            
+
 
