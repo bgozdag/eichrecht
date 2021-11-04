@@ -1,10 +1,6 @@
-import time
-import ssl
-from modbus_tk import modbus_rtu, utils, defines, exceptions
+from modbus_tk import modbus_rtu, defines
 import serial
 from serial.serialutil import PARITY_EVEN, STOPBITS_ONE
-
-logger = utils.create_logger("console")
 
 PORT = "/dev/ttyUSB1"
 BAUDRATE = 115200
