@@ -17,6 +17,12 @@ class SnapshotStatus(Enum):
     FAILED_NO_CHARGE_RELEASE = 4
     FAILED_INCORRECT_FEEDBACK = 5
 
+class SnapshotType(Enum):
+    SIGNED_CURRENT_SNAPSHOT = 0
+    SIGNED_TURN_ON_SNAPSHOT = 1
+    SIGNED_TURN_OFF_SNAPSHOT = 2
+    SIGNED_START_SNAPSHOT = 3
+
 class Register:
     """Register base class"""
 
@@ -56,5 +62,8 @@ class Bauer(Device):
         self.powerL2 = Register(40110, 1, DataType.UINT16)
         self.powerL3 = Register(40111, 1, DataType.UINT16)
         self.energy = Register(40136, 2, DataType.UINT32)
-        self.ocmfStatus = Register(41794, 1, DataType.UINT16)
-        self.ocmfSignature = Register(41795, 496, DataType.UINT16)
+        self.snapshot_status = Register(40524, 1, DataType.UINT16)
+        self.ocmf = Register(41795, 496, DataType.STRING)
+        self.meta1 = Register(40279, 70, DataType.STRING)
+        self.meta2 = Register(40349, 50, DataType.STRING)
+        self.meta3 = Register(40399, 50, DataType.STRING)

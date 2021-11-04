@@ -14,13 +14,13 @@ class App:
         except modbus.ModbusInvalidResponseError:
             self.modbus_controller.set_baud_rate(self.device.baud_rate, self.device.MAX_BAUD_RATE)
         finally:
-            self.modbus_controller.set_time(self.device.epoch_time)
             logger.info("Manufacturer: {}".format(self.modbus_controller.read(self.device.manufacturer)))
             logger.info("Model: {}".format(self.modbus_controller.read(self.device.model)))
             logger.info("Options: {}".format(self.modbus_controller.read(self.device.options)))
             logger.info("Version: {}".format(self.modbus_controller.read(self.device.version)))
             logger.info("Serial number: {}".format(self.modbus_controller.read(self.device.serial_number)))
-            # self.get_snapshot(self.device.ocmfStatus, self.device.ocmfSignature)
+            self.modbus_controller.set_time(self.device.epoch_time)
+            self.get_snapshot(self.device.snapshot_status)
             self.query_metrics()
 
     def query_metrics(self):
@@ -36,20 +36,18 @@ class App:
                 logger.info("Power{}: {}".format(i, p))
             logger.info("Energy: {}".format(self.modbus_controller.read(self.device.energy)))
     
-    def get_snapshot(self, reg_status: Register, reg_signature: Register):
+    def get_snapshot(self, reg_status: Register):
+        self.modbus_controller.write(self.device.meta1, "VESTEL EVC04")
         status = self.modbus_controller.read(reg_status)
-        logger.info("1 snapshot status: {}".format(SnapshotStatus(status)))
         if status == SnapshotStatus.UPDATE.value:
             logger.info("Update already in progress")
             return
         self.modbus_controller.write(reg_status, SnapshotStatus.UPDATE.value)
         status = self.modbus_controller.read(reg_status)
-        logger.info("2 snapshot status: {}".format(SnapshotStatus(status)))
         while status == SnapshotStatus.UPDATE.value:
             status = self.modbus_controller.read(reg_status)
-        logger.info("3 snapshot status: {}".format(SnapshotStatus(status)))
         if status == SnapshotStatus.VALID.value:
-            logger.info("Signature: {}".format(self.modbus_controller.read(reg_signature)))
+            logger.info("Signature: {}".format(self.modbus_controller.get_ocmf(self.device.ocmf)))
         else:
             logger.error("Snapshot failed: {}".format(SnapshotStatus(status).name))
 
