@@ -6,10 +6,10 @@ from definitions import DataType, Register
 
 logger = utils.create_logger("console")
 
-PORT = "/dev/ttyUSB1"
+PORT = "/dev/ttyO2"
 DEFAULT_BAUDRATE = 19200
 BYTESIZE = 8
-UNIT_ID = 42
+UNIT_ID = 44
 TIMEOUT = 15
 
 class ModbusController:
@@ -86,7 +86,10 @@ class ModbusController:
 
     def set_time(self, reg: Register):
         t = int(time.time())
-        tzone = int(time.tzname[0]) * 60
+        try:
+            tzone = int(time.tzname[0]) * 60
+        except:
+            tzone = 0
         logger.info("setting time: {} {}".format(time.ctime(t), tzone))
         output = self._convert_to_uint16(t, reg.length)
         output.append(tzone)

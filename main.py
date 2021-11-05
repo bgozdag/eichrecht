@@ -1,4 +1,5 @@
 import time
+from threading import Thread
 from modbus_tk import modbus
 from modbus_controller import ModbusController
 from definitions import Bauer, Register, SnapshotStatus
@@ -20,7 +21,6 @@ class App:
             logger.info("Version: {}".format(self.modbus_controller.read(self.device.version)))
             logger.info("Serial number: {}".format(self.modbus_controller.read(self.device.serial_number)))
             self.modbus_controller.set_time(self.device.epoch_time)
-            self.get_snapshot(self.device.snapshot_status)
             self.query_metrics()
 
     def query_metrics(self):
@@ -47,7 +47,7 @@ class App:
             for x in queries:
                 logger.info("{}: {}".format(x.name, query_dict[x.address]))
 
-    def get_snapshot(self, reg_status: Register):
+    def _get_snapshot(self, reg_status: Register, reg_ocmf: Register):
         self.modbus_controller.write(self.device.meta1, "VESTEL EVC04")
         status = self.modbus_controller.read(reg_status)
         if status == SnapshotStatus.UPDATE.value:
@@ -58,10 +58,24 @@ class App:
         while status == SnapshotStatus.UPDATE.value:
             status = self.modbus_controller.read(reg_status)
         if status == SnapshotStatus.VALID.value:
-            logger.info("Signature: {}".format(self.modbus_controller.get_ocmf(self.device.ocmf)))
+            logger.info("{}: {}".format(reg_ocmf.name, self.modbus_controller.get_ocmf(reg_ocmf)))
         else:
             logger.error("Snapshot failed: {}".format(SnapshotStatus(status).name))
 
+    def get_current_snapshot(self):
+        snapshot_t = Thread(target=self._get_snapshot, args=(
+            self.device.current_snapshot_status, self.device.current_ocmf), daemon=True)
+        snapshot_t.start()
+
+    def get_start_snapshot(self):
+        snapshot_t = Thread(target=self._get_snapshot, args=(
+            self.device.start_snapshot_status, self.device.start_ocmf), daemon=True)
+        snapshot_t.start()
+
+    def get_end_snapshot(self):
+        snapshot_t = Thread(target=self._get_snapshot, args=(
+            self.device.end_snapshot_status, self.device.end_ocmf), daemon=True)
+        snapshot_t.start()
 
 if __name__ == "__main__":
     app = App()
