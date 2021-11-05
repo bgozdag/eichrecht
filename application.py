@@ -1,4 +1,5 @@
-from definitions import Bauer, Register, SnapshotStatus
+from definitions import Register, SnapshotStatus
+from device import Bauer
 from threading import Thread
 from mediator import Mediator
 from modbus_controller import ModbusController
@@ -14,8 +15,7 @@ class Application(Component):
         try:
             self.modbus_controller.read_reg(self.device.baud_rate)
         except modbus.ModbusInvalidResponseError:
-            self.modbus_controller.set_baud_rate(
-                self.device.baud_rate, self.device.MAX_BAUD_RATE)
+            self.modbus_controller.set_baud_rate(self.device)
 
     def notify(self, message):
         self._mediator.notify(message, self)

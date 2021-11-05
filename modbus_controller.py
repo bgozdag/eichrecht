@@ -3,11 +3,11 @@ from modbus_tk import modbus_rtu, utils, defines, exceptions
 import serial
 from serial.serialutil import PARITY_EVEN, STOPBITS_ONE
 from definitions import DataType, Register
+from device import Device
 
 logger = utils.create_logger("console")
 
 PORT = "/dev/ttyO2"
-DEFAULT_BAUDRATE = 19200
 BYTESIZE = 8
 UNIT_ID = 44
 TIMEOUT = 15
@@ -54,16 +54,15 @@ class ModbusController:
             result.append(0)
         return result
 
-    def set_baud_rate(self, reg: Register, max_baud_rate):
+    def set_baud_rate(self, device: Device):
         self.client.close()
         self.client = modbus_rtu.RtuMaster(serial.Serial(
-            port=PORT, baudrate=DEFAULT_BAUDRATE, bytesize=BYTESIZE, parity=PARITY_EVEN, stopbits=STOPBITS_ONE))
+            port=PORT, baudrate=device.DEFAULT_BAUDRATE, bytesize=BYTESIZE, parity=PARITY_EVEN, stopbits=STOPBITS_ONE))
         self.client.set_timeout(TIMEOUT)
-        self.write(reg, max_baud_rate)
-        logger.info("Baud rate set to: {}".format(max_baud_rate))
+        self.write(device.baud_rate, device.MAX_BAUD_RATE)
         self.client.close()
         self.client = modbus_rtu.RtuMaster(serial.Serial(
-            port=PORT, baudrate=max_baud_rate, bytesize=BYTESIZE, parity=PARITY_EVEN, stopbits=STOPBITS_ONE))
+            port=PORT, baudrate=device.MAX_BAUD_RATE, bytesize=BYTESIZE, parity=PARITY_EVEN, stopbits=STOPBITS_ONE))
         self.client.set_timeout(TIMEOUT)
 
     def read_in_between(self, reg_start: Register, reg_end: Register):
