@@ -70,10 +70,11 @@ class ModbusController:
         return self.client.execute(
             UNIT_ID, defines.READ_HOLDING_REGISTERS, reg_start.address, reg_end.address - reg_start.address + 1)
 
-    def read(self, reg: Register):
-        logger.info("Reading from: {}".format(reg.name))
+    def read_reg(self, reg: Register):
         data = self.client.execute(
             UNIT_ID, defines.READ_HOLDING_REGISTERS, reg.address, reg.length)
+        result = self._convert_from_uint16(reg.data_type, data)
+        logger.info("{}: {}".format(reg.name, result))
         return self._convert_from_uint16(reg.data_type, data)
 
     def write(self, reg: Register, data):
