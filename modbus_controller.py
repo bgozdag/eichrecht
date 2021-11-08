@@ -105,4 +105,4 @@ class ModbusController:
             result += self._convert_from_uint16(reg.data_type, data)
             size -= 125
             address += 125
-        return result
+        return result.replace("\u0000", "")

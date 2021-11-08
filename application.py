@@ -18,12 +18,21 @@ class Application(Component):
             self.modbus_controller.read_reg(self.device.baud_rate)
         except modbus.ModbusInvalidResponseError:
             self.modbus_controller.set_baud_rate()
+        finally:
+            self.modbus_controller.set_time(self.device.epoch_time)
+            self.modbus_controller.write(self.device.meta1, "BUGRA")
 
     def notify(self, message):
         self._mediator.notify(message, self)
 
     def receive(self, message):
         print("{} received: {}".format(__class__.__name__, message))
+        data = json.loads(message)
+        if data["type"] == "ChargeSessionStatus":
+            if data["status"] == "Started":
+                self.get_start_snapshot()
+            elif data["status"] == "Stopped":
+                self.get_end_snapshot()
 
     def query_metrics(self):
         while True:
@@ -55,21 +64,19 @@ class Application(Component):
                 msg["data"].append(
                     {"{}".format(x.name): "{}".format(query_dict[x.address])})
             self.notify(json.dumps(msg))
-            logger.debug(msg)
 
     def _get_snapshot(self, reg_status: Register, reg_ocmf: Register):
-        self.modbus_controller.write(self.device.meta1, "VESTEL EVC04")
-        status = self.modbus_controller.read_reg(reg_status)
-        if status == SnapshotStatus.UPDATE.value:
-            logger.info("Update already in progress")
-            return
         self.modbus_controller.write(reg_status, SnapshotStatus.UPDATE.value)
         status = self.modbus_controller.read_reg(reg_status)
         while status == SnapshotStatus.UPDATE.value:
             status = self.modbus_controller.read_reg(reg_status)
         if status == SnapshotStatus.VALID.value:
-            logger.info("{}: {}".format(reg_ocmf.name,
-                        self.modbus_controller.get_ocmf(reg_ocmf)))
+            ocmf = self.modbus_controller.get_ocmf(reg_ocmf)
+            msg = {
+                "type": reg_ocmf.name,
+                "data": ocmf
+            }
+            self.notify(json.dumps(msg))
         else:
             logger.error("Snapshot failed: {}".format(
                 SnapshotStatus(status).name))

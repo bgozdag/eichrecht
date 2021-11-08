@@ -1,5 +1,6 @@
 from component import Component
 import zmq
+from threading import Thread
 
 
 class MessageController(Component):
@@ -15,3 +16,12 @@ class MessageController(Component):
 
     def receive(self, message):
         self.socket.send_string(message)
+
+    def _listen(self):
+        while True:
+            data = self.socket.recv_string()
+            self.notify(data)
+
+    def listen(self):
+        t = Thread(target=self._listen, daemon=True)
+        t.start()

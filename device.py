@@ -183,9 +183,9 @@ class Bauer(Device):
         "Start Snapshot Status", 41286, 1, DataType.UINT16)
     end_snapshot_status = Register(
         "End Snapshot Status", 41540, 1, DataType.UINT16)
-    current_ocmf = Register("Current OCMF", 41795, 496, DataType.STRING)
-    start_ocmf = Register("Start OCMF", 43295, 496, DataType.STRING)
-    end_ocmf = Register("End OCMF", 43795, 496, DataType.STRING)
+    current_ocmf = Register("currentOCMF", 41795, 496, DataType.STRING)
+    start_ocmf = Register("startOCMF", 43295, 496, DataType.STRING)
+    end_ocmf = Register("endOCMF", 43795, 496, DataType.STRING)
     meta1 = Register("Meta1", 40279, 70, DataType.STRING)
     meta2 = Register("Meta2", 40349, 50, DataType.STRING)
     meta3 = Register("Meta3", 40399, 50, DataType.STRING)

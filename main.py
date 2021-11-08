@@ -9,4 +9,5 @@ if __name__ == "__main__":
     mediator.add(app)
     mediator.add(message_controller)
 
+    message_controller.listen()
     app.query_metrics()
