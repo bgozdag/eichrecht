@@ -7,15 +7,16 @@ from modbus_tk import modbus
 from component import Component
 from modbus_controller import logger
 
+
 class Application(Component):
     def __init__(self, mediator: Mediator) -> None:
         self._mediator = mediator
         self.device = Bauer()
-        self.modbus_controller = ModbusController(self.device.MAX_BAUD_RATE)
+        self.modbus_controller = ModbusController(self.device)
         try:
             self.modbus_controller.read_reg(self.device.baud_rate)
         except modbus.ModbusInvalidResponseError:
-            self.modbus_controller.set_baud_rate(self.device)
+            self.modbus_controller.set_baud_rate()
 
     def notify(self, message):
         self._mediator.notify(message, self)

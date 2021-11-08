@@ -1,7 +1,33 @@
 from abc import ABC
 from definitions import DataType, Register
 
+
 class Device(ABC):
+
+    @property
+    def PORT(self):
+        raise NotImplementedError
+
+    @property
+    def BYTESIZE(self):
+        raise NotImplementedError
+
+    @property
+    def UNIT_ID(self):
+        raise NotImplementedError
+
+    @property
+    def TIMEOUT(self):
+        raise NotImplementedError
+
+    @property
+    def PARITY(self):
+        raise NotImplementedError
+
+    @property
+    def STOPBITS(self):
+        raise NotImplementedError
+
     @property
     def DEFAULT_BAUD_RATE(self):
         raise NotImplementedError
@@ -126,6 +152,12 @@ class Device(ABC):
 class Bauer(Device):
     DEFAULT_BAUD_RATE = 19200
     MAX_BAUD_RATE = 115200
+    PORT = "/dev/ttyO2"
+    BYTESIZE = 8
+    UNIT_ID = 44
+    TIMEOUT = 15
+    PARITY = 'E'
+    STOPBITS = 1
     manufacturer = Register("Manufacturer", 40004, 16, DataType.STRING)
     model = Register("Model", 40020, 16, DataType.STRING)
     options = Register("Options", 40036, 8, DataType.STRING)
