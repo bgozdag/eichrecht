@@ -6,6 +6,7 @@ from modbus_controller import ModbusController
 from modbus_tk import modbus
 from component import Component
 from modbus_controller import logger
+import json
 
 
 class Application(Component):
@@ -46,8 +47,15 @@ class Application(Component):
             start_address = self.device.current.address
             for i in range(len(query)):
                 query_dict[start_address + i] = query[i]
+            msg = {
+                "type": "metricsEvent",
+                "data": []
+            }
             for x in queries:
-                self.notify("{}: {}".format(x.name, query_dict[x.address]))
+                msg["data"].append(
+                    {"{}".format(x.name): "{}".format(query_dict[x.address])})
+            self.notify(json.dumps(msg))
+            logger.debug(msg)
 
     def _get_snapshot(self, reg_status: Register, reg_ocmf: Register):
         self.modbus_controller.write(self.device.meta1, "VESTEL EVC04")
