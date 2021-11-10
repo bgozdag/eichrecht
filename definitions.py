@@ -9,6 +9,7 @@ class DataType(Enum):
     STRING = "string"
     UINT16 = "uint16"
     UINT32 = "uint32"
+    BLOB = "blob"
 
 
 class SnapshotStatus(Enum):
@@ -60,6 +61,7 @@ class Description(Enum):
     META_1 = "meta1"
     META_2 = "meta2"
     META_3 = "meta3"
+    PUBLIC_KEY = "publicKey"
 
 class Register:
     """Register base class"""

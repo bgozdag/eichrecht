@@ -1,24 +1,20 @@
-import time
-from modbus_tk import modbus_rtu, utils, defines, exceptions
+from modbus_tk import modbus_rtu, defines, exceptions
 import serial
 from definitions import DataType, Register
-from device import Device
-
-logger = utils.create_logger("console")
 
 
 class ModbusController:
-    def __init__(self, device: Device):
-        self._device = device
-        self.client = modbus_rtu.RtuMaster(serial.Serial(
-            port=self._device.PORT, baudrate=self._device.MAX_BAUD_RATE, bytesize=self._device.BYTESIZE, parity=self._device.PARITY, stopbits=self._device.STOPBITS))
-        self.client.set_timeout(self._device.TIMEOUT)
-        self.client.set_verbose(True)
-        logger.info("connected")
-
     def __del__(self):
-        logger.warning("closing socket")
+        print("closing socket")
         self.client.close()
+
+    def connect_rtu_client(self, port, baudrate, bytesize, parity, stopbits, timeout):
+        self.client = modbus_rtu.RtuMaster(serial.Serial(
+            port=port, baudrate=baudrate, bytesize=bytesize, parity=parity,
+            stopbits=stopbits))
+        self.client.set_timeout(timeout)
+        self.client.set_verbose(True)
+        print("connected")
 
     def _convert_from_uint16(self, data_type: DataType, data):
         if data_type == DataType.INT16 or data_type == DataType.UINT16:
@@ -31,6 +27,8 @@ class ModbusController:
                 q, r = divmod(i, 2**8)
                 string += chr(q) + chr(r)
             return string
+        elif data_type == DataType.BLOB:
+            return data
 
     def _convert_to_uint16(self, data, size):
         result = []
@@ -50,59 +48,28 @@ class ModbusController:
             result.append(0)
         return result
 
-    def set_baud_rate(self):
-        self.client.close()
-        self.client = modbus_rtu.RtuMaster(serial.Serial(
-            port=self._devicePORT, baudrate=self._device.DEFAULT_BAUDRATE, bytesize=self._device.BYTESIZE, parity=self._device.PARITY_EVEN, stopbits=self._device.STOPBITS_ONE))
-        self.client.set_timeout(self._device.TIMEOUT)
-        self.write(self._device.baud_rate, self._device.MAX_BAUD_RATE)
-        self.client.close()
-        self.client = modbus_rtu.RtuMaster(serial.Serial(
-            port=self._device.PORT, baudrate=self._device.MAX_BAUD_RATE, bytesize=self._device.BYTESIZE, parity=self._device.PARITY_EVEN, stopbits=self._device.STOPBITS_ONE))
-        self.client.set_timeout(self._device.TIMEOUT)
-
-    def read_in_between(self, reg_start: Register, reg_end: Register):
-        return self.client.execute(
-            self._device.UNIT_ID, defines.READ_HOLDING_REGISTERS, reg_start.address, reg_end.address + reg_end.length - reg_start.address)
-
-    def read_reg(self, reg: Register):
+    def read_reg(self, unit_id,  reg: Register):
         data = self.client.execute(
-            self._device.UNIT_ID, defines.READ_HOLDING_REGISTERS, reg.address, reg.length)
+            unit_id, defines.READ_HOLDING_REGISTERS, reg.address, reg.length)
         result = self._convert_from_uint16(reg.data_type, data)
-        logger.info("{}: {}".format(reg.address, result))
-        return self._convert_from_uint16(reg.data_type, data)
+        print("{}: {}".format(reg.address, result))
+        return result
 
-    def write(self, reg: Register, data):
+    def read_multiple(self, unit_id, reg_start: Register, reg_end: Register):
+        return self.client.execute(
+            unit_id, defines.READ_HOLDING_REGISTERS, reg_start.address, reg_end.address + reg_end.length - reg_start.address)
+
+    def write_reg(self, unit_id, reg: Register, data):
         try:
-            logger.info("Writing '{}' to: {}".format(data, reg.address))
-            self.client.execute(self._device.UNIT_ID, defines.WRITE_MULTIPLE_REGISTERS,
+            print("Writing '{}' to: {}".format(data, reg.address))
+            self.client.execute(unit_id, defines.WRITE_MULTIPLE_REGISTERS,
                                 reg.address, output_value=self._convert_to_uint16(data, reg.length))
         except exceptions.ModbusError as e:
-            logger.error(e)
+            print(e)
 
-    def set_time(self, reg: Register):
-        t = int(time.time())
-        try:
-            tzone = int(time.tzname[0]) * 60
-        except:
-            tzone = 0
-        logger.info("setting time: {} {}".format(time.ctime(t), tzone))
-        output = self._convert_to_uint16(t, reg.length)
-        output.append(tzone)
+    def write_multiple(self, unit_id, reg_start: Register, data):
         try:
             self.client.execute(
-                self._device.UNIT_ID, defines.WRITE_MULTIPLE_REGISTERS, reg.address, output_value=output)
+                unit_id, defines.WRITE_MULTIPLE_REGISTERS, reg_start.address, output_value=data)
         except exceptions.ModbusError as e:
-            logger.error(e)
-
-    def get_ocmf(self, reg: Register):
-        size = reg.length
-        address = reg.address
-        result = ""
-        while size > 125:
-            data = self.client.execute(
-                self._device.UNIT_ID, defines.READ_HOLDING_REGISTERS, address, 125)
-            result += self._convert_from_uint16(reg.data_type, data)
-            size -= 125
-            address += 125
-        return result.replace("\u0000", "")
+            print(e)

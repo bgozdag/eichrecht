@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
-from definitions import Current, DataType, Description, Energy, Exponent, Power, Register, Voltage
+from definitions import Current, DataType, Description, Energy, Exponent, Power, Register, Voltage, SnapshotStatus
+from modbus_controller import ModbusController
+import time
+from modbus_tk import modbus
 
 
 class Device(ABC):
@@ -57,6 +60,10 @@ class Device(ABC):
     def metrics_end(self):
         raise NotImplementedError
 
+    @abstractmethod
+    def set_max_baud_rate(self):
+        raise NotImplementedError
+
 
 class Bauer(Device):
     DEFAULT_BAUD_RATE = 19200
@@ -100,10 +107,125 @@ class Bauer(Device):
         Description.META_1: Register(40279, 70, DataType.STRING),
         Description.META_2: Register(40349, 50, DataType.STRING),
         Description.META_3: Register(40399, 50, DataType.STRING),
+        Description.PUBLIC_KEY: Register(40449, 125, DataType.BLOB)
     }
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._modbus_controller = ModbusController()
+        self._modbus_controller.connect_rtu_client(
+            self.PORT, self.MAX_BAUD_RATE, self.BYTESIZE, self.PARITY, self.STOPBITS, self.TIMEOUT)
+        try:
+            baud = self._modbus_controller.read_reg(
+                self.UNIT_ID, self.registers.get(Description.BAUD_RATE))
+            print("Baud rate: {}".format(baud))
+        except modbus.ModbusInvalidResponseError:
+            self.set_max_baud_rate()
+        finally:
+            self.set_time()
+            self.set_meta("BUGRA")
 
     def metrics_start(self):
         return self.registers.get(Description.CURRENT)
 
     def metrics_end(self):
         return self.registers.get(Description.ENERGY_EXP)
+
+    def set_max_baud_rate(self):
+        self._modbus_controller.client.close()
+        self._modbus_controller.connect_rtu_client(
+            self.PORT, self.DEFAULT_BAUD_RATE, self.BYTESIZE, self.PARITY, self.STOPBITS, self.TIMEOUT)
+        self._modbus_controller.write_reg(self.UNIT_ID, self.registers.get(
+            Description.BAUD_RATE), self.MAX_BAUD_RATE)
+        self._modbus_controller.client.close()
+        self._modbus_controller.connect_rtu_client(
+            self.PORT, self.DEFAULT_BAUD_RATE, self.BYTESIZE, self.PARITY, self.STOPBITS, self.TIMEOUT)
+
+    def set_time(self):
+        t = int(time.time())
+        try:
+            tzone = int(time.tzname[0]) * 60
+        except:
+            tzone = 0
+        time_reg = self.registers.get(Description.EPOCH_TIME)
+        print("setting time: {} {}".format(time.ctime(t), tzone))
+        output = self._modbus_controller._convert_to_uint16(t, time_reg.length)
+        output.append(tzone)
+        self._modbus_controller.write_multiple(self.UNIT_ID, time_reg, output)
+
+    def get_ocmf(self, reg: Register):
+        size = reg.length
+        address = reg.address
+        result = ""
+        while size > 125:
+            read_reg = Register(address, 125, reg.data_type)
+            result += self._modbus_controller.read_reg(self.UNIT_ID, read_reg)
+            size -= 125
+            address += 125
+        return result.replace("\u0000", "")
+
+    def set_meta(self, data):
+        self._modbus_controller.write_reg(
+            self.UNIT_ID, self.registers.get(Description.META_1), data)
+
+    def get_metrics(self):
+        query = self._modbus_controller.read_multiple(
+            self.UNIT_ID, self.metrics_start(), self.metrics_end())
+        metrics = [
+            Description.CURRENT,
+            Description.CURRENT_L1,
+            Description.CURRENT_L2,
+            Description.CURRENT_L3,
+            Description.VOLTAGE_L1,
+            Description.VOLTAGE_L2,
+            Description.VOLTAGE_L3,
+            Description.POWER,
+            Description.POWER_L1,
+            Description.POWER_L2,
+            Description.POWER_L3,
+            Description.ENERGY,
+        ]
+        query_dict = {}
+        for i in range(len(query)):
+            query_dict[self.metrics_start().address + i] = int(query[i])
+        msg = {
+            "type": "metricsEvent",
+            "data": []
+        }
+        for desc in metrics:
+            reg = self.registers.get(desc)
+            if reg.data_type == DataType.UINT32:
+                value = self._modbus_controller._convert_from_uint16(
+                    DataType.UINT32, [query_dict[reg.address], query_dict[reg.address + 1]])
+            else:
+                value = query_dict[reg.address]
+            # if type(reg) is Current:
+            #     value *= 10 ** query_dict[self.device.registers.get(Description.CURRENT_EXP).address]
+            # elif type(reg) is Voltage:
+            #     value *= 10 ** query_dict[self.device.registers.get(Description.VOLTAGE_EXP).address]
+            # elif type(reg) is Power:
+            #     value *= 10 ** query_dict[self.device.registers.get(Description.POWER_EXP).address]
+            # elif type(reg) is Energy:
+            #     value *= 10 ** query_dict[self.device.registers.get(Description.ENERGY_EXP).address]
+            msg["data"].append(
+                {"{}".format(desc.value): "{}".format(value)})
+        return msg
+
+    def get_snapshot(self, reg_status: Register, reg_ocmf: Register):
+        self._modbus_controller.write_reg(self.UNIT_ID, reg_status, SnapshotStatus.UPDATE.value)
+        status = self._modbus_controller.read_reg(self.UNIT_ID, reg_status)
+        while status == SnapshotStatus.UPDATE.value:
+            status = self._modbus_controller.read_reg(self.UNIT_ID, reg_status)
+        if status == SnapshotStatus.VALID.value:
+            return self.get_ocmf(reg_ocmf)
+        else:
+            raise Exception("Snapshot failed: {}".format(
+                SnapshotStatus(status)))
+
+    def get_public_key(self):
+        pk_reg = self.registers.get(Description.PUBLIC_KEY)
+        data = self._modbus_controller.read_reg(self.UNIT_ID, pk_reg)
+        size = data[0]
+        pk = data[2:size+2]
+        pk = [hex(i)[2:].zfill(4) for i in pk]
+        return "".join(pk).rstrip("0").replace("\u0000", "")
