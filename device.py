@@ -64,6 +64,18 @@ class Device(ABC):
     def set_max_baud_rate(self):
         raise NotImplementedError
 
+    @abstractmethod
+    def get_metrics(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_snapshot(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_public_key(self):
+        raise NotImplementedError
+
 
 class Bauer(Device):
     DEFAULT_BAUD_RATE = 19200
@@ -212,7 +224,8 @@ class Bauer(Device):
         return msg
 
     def get_snapshot(self, reg_status: Register, reg_ocmf: Register):
-        self._modbus_controller.write_reg(self.UNIT_ID, reg_status, SnapshotStatus.UPDATE.value)
+        self._modbus_controller.write_reg(
+            self.UNIT_ID, reg_status, SnapshotStatus.UPDATE.value)
         status = self._modbus_controller.read_reg(self.UNIT_ID, reg_status)
         while status == SnapshotStatus.UPDATE.value:
             status = self._modbus_controller.read_reg(self.UNIT_ID, reg_status)

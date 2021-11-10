@@ -1,7 +1,6 @@
-from definitions import Current, Description, Energy, Power, Register, SnapshotStatus, DataType, Voltage
+from definitions import Description, Register
 from device import Bauer
 from threading import Thread
-from modbus_tk import utils
 from mediator import Mediator
 from component import Component
 import json

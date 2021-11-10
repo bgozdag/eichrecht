@@ -13,7 +13,6 @@ class ModbusController:
             port=port, baudrate=baudrate, bytesize=bytesize, parity=parity,
             stopbits=stopbits))
         self.client.set_timeout(timeout)
-        self.client.set_verbose(True)
         print("connected")
 
     def _convert_from_uint16(self, data_type: DataType, data):
