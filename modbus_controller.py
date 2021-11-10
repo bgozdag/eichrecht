@@ -63,18 +63,18 @@ class ModbusController:
 
     def read_in_between(self, reg_start: Register, reg_end: Register):
         return self.client.execute(
-            self._device.UNIT_ID, defines.READ_HOLDING_REGISTERS, reg_start.address, reg_end.address - reg_start.address + 1)
+            self._device.UNIT_ID, defines.READ_HOLDING_REGISTERS, reg_start.address, reg_end.address + reg_end.length - reg_start.address)
 
     def read_reg(self, reg: Register):
         data = self.client.execute(
             self._device.UNIT_ID, defines.READ_HOLDING_REGISTERS, reg.address, reg.length)
         result = self._convert_from_uint16(reg.data_type, data)
-        logger.info("{}: {}".format(reg.name, result))
+        logger.info("{}: {}".format(reg.address, result))
         return self._convert_from_uint16(reg.data_type, data)
 
     def write(self, reg: Register, data):
         try:
-            logger.info("Writing '{}' to: {}".format(data, reg.name))
+            logger.info("Writing '{}' to: {}".format(data, reg.address))
             self.client.execute(self._device.UNIT_ID, defines.WRITE_MULTIPLE_REGISTERS,
                                 reg.address, output_value=self._convert_to_uint16(data, reg.length))
         except exceptions.ModbusError as e:
