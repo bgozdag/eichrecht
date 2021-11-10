@@ -7,6 +7,7 @@ import json
 
 
 class Application(Component):
+
     def __init__(self, mediator: Mediator) -> None:
         self._mediator = mediator
         self.device = Bauer()

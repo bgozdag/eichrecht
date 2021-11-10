@@ -2,6 +2,7 @@ from enum import Enum
 
 
 class DataType(Enum):
+
     """Register data type"""
 
     INT16 = "int16"
@@ -12,6 +13,7 @@ class DataType(Enum):
 
 
 class SnapshotStatus(Enum):
+
     VALID = 0
     INVALID = 1
     UPDATE = 2
@@ -21,6 +23,7 @@ class SnapshotStatus(Enum):
 
 
 class SnapshotType(Enum):
+
     SIGNED_CURRENT_SNAPSHOT = 0
     SIGNED_TURN_ON_SNAPSHOT = 1
     SIGNED_TURN_OFF_SNAPSHOT = 2
@@ -28,6 +31,7 @@ class SnapshotType(Enum):
 
 
 class Description(Enum):
+
     MANUFACTURER = "manufacturer"
     MODEL = "model"
     OPTIONS = "options"
@@ -63,6 +67,7 @@ class Description(Enum):
     PUBLIC_KEY = "publicKey"
 
 class Register:
+
     """Register base class"""
 
     def __init__(self, address, length, data_type):
@@ -73,25 +78,30 @@ class Register:
 
 
 class Current(Register):
+
     def __init__(self, address, length, data_type):
         super().__init__(address, length, data_type)
 
 
 class Voltage(Register):
+
     def __init__(self, address, length, data_type):
         super().__init__(address, length, data_type)
 
 
 class Power(Register):
+
     def __init__(self, address, length, data_type):
         super().__init__(address, length, data_type)
 
 
 class Energy(Register):
+
     def __init__(self, address, length, data_type):
         super().__init__(address, length, data_type)
 
 
 class Exponent(Register):
+
     def __init__(self, address, length, data_type):
         super().__init__(address, length, data_type)

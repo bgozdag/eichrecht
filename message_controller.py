@@ -4,6 +4,7 @@ from threading import Thread
 
 
 class MessageController(Component):
+
     def __init__(self, mediator) -> None:
         self._mediator = mediator
         context = zmq.Context()

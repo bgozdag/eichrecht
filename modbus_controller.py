@@ -4,6 +4,7 @@ from definitions import DataType, Register
 
 
 class ModbusController:
+
     def __del__(self):
         print("closing socket")
         self.client.close()

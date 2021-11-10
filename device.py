@@ -78,6 +78,7 @@ class Device(ABC):
 
 
 class Bauer(Device):
+
     DEFAULT_BAUD_RATE = 19200
     MAX_BAUD_RATE = 115200
     PORT = "/dev/ttyO2"
