@@ -1,0 +1,6 @@
+autopep8==1.6.0
+modbus-tk==1.1.2
+pycodestyle==2.8.0
+pyserial==3.5
+pyzmq==20.0.0
+toml==0.10.2

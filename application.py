@@ -19,9 +19,9 @@ class Application(Component):
         data = json.loads(message)
         if data["type"] == "ChargeSessionStatus":
             if data["status"] == "Started":
-                self.get_start_snapshot()
+                self.send_start_snapshot()
             elif data["status"] == "Stopped":
-                self.get_end_snapshot()
+                self.send_end_snapshot()
 
     def run(self):
         self.send_public_key()
