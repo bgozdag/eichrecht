@@ -98,19 +98,19 @@ class Bauer(Device):
         Description.VOLTAGE_L1: Voltage(40098, 1, DataType.UINT16),
         Description.VOLTAGE_L2: Voltage(40099, 1, DataType.UINT16),
         Description.VOLTAGE_L3: Voltage(40100, 1, DataType.UINT16),
-        Description.VOLTAGE_EXP: Exponent(40105, 1, DataType.UINT16),
+        Description.VOLTAGE_EXP: Exponent(40105, 1, DataType.INT16),
         Description.CURRENT: Current(40092, 1, DataType.UINT16),
         Description.CURRENT_L1: Current(40093, 1, DataType.UINT16),
         Description.CURRENT_L2: Current(40094, 1, DataType.UINT16),
         Description.CURRENT_L3: Current(40095, 1, DataType.UINT16),
-        Description.CURRENT_EXP: Exponent(40096, 1, DataType.UINT16),
+        Description.CURRENT_EXP: Exponent(40096, 1, DataType.INT16),
         Description.POWER: Power(40108, 1, DataType.UINT16),
         Description.POWER_L1: Power(40109, 1, DataType.UINT16),
         Description.POWER_L2: Power(40110, 1, DataType.UINT16),
         Description.POWER_L3: Power(40111, 1, DataType.UINT16),
-        Description.POWER_EXP: Exponent(40112, 1, DataType.UINT16),
+        Description.POWER_EXP: Exponent(40112, 1, DataType.INT16),
         Description.ENERGY: Energy(40136, 2, DataType.UINT32),
-        Description.ENERGY_EXP: Exponent(40144, 1, DataType.UINT16),
+        Description.ENERGY_EXP: Exponent(40144, 1, DataType.INT16),
         Description.CURRENT_SNAPSHOT_STATUS: Register(40524, 1, DataType.UINT16),
         Description.START_SNAPSHOT_STATUS: Register(41286, 1, DataType.UINT16),
         Description.END_SNAPSHOT_STATUS: Register(41540, 1, DataType.UINT16),
@@ -182,47 +182,35 @@ class Bauer(Device):
             self.UNIT_ID, self.registers.get(Description.META_1), data)
 
     def get_metrics(self):
-        query = self._modbus_controller.read_multiple(
-            self.UNIT_ID, self.metrics_start(), self.metrics_end())
-        metrics = [
+        regs = [
             Description.CURRENT,
             Description.CURRENT_L1,
             Description.CURRENT_L2,
             Description.CURRENT_L3,
+            Description.CURRENT_EXP,
             Description.VOLTAGE_L1,
             Description.VOLTAGE_L2,
             Description.VOLTAGE_L3,
+            Description.VOLTAGE_EXP,
             Description.POWER,
             Description.POWER_L1,
             Description.POWER_L2,
             Description.POWER_L3,
+            Description.POWER_EXP,
             Description.ENERGY,
+            Description.ENERGY_EXP,
         ]
-        query_dict = {}
-        for i in range(len(query)):
-            query_dict[self.metrics_start().address + i] = int(query[i])
+        reg_list = [self.registers.get(x) for x in regs]
+        output = self._modbus_controller.read_multiple(
+            self.UNIT_ID, reg_list)
+        output = dict(zip([desc.value for desc in regs], output))
+        data = []
+        
         msg = {
             "type": "metricsEvent",
             "data": []
         }
-        for desc in metrics:
-            reg = self.registers.get(desc)
-            if reg.data_type == DataType.UINT32:
-                value = self._modbus_controller._convert_from_uint16(
-                    DataType.UINT32, [query_dict[reg.address], query_dict[reg.address + 1]])
-            else:
-                value = query_dict[reg.address]
-            # if type(reg) is Current:
-            #     value *= 10 ** query_dict[self.device.registers.get(Description.CURRENT_EXP).address]
-            # elif type(reg) is Voltage:
-            #     value *= 10 ** query_dict[self.device.registers.get(Description.VOLTAGE_EXP).address]
-            # elif type(reg) is Power:
-            #     value *= 10 ** query_dict[self.device.registers.get(Description.POWER_EXP).address]
-            # elif type(reg) is Energy:
-            #     value *= 10 ** query_dict[self.device.registers.get(Description.ENERGY_EXP).address]
-            msg["data"].append(
-                {"{}".format(desc.value): "{}".format(value)})
-        return msg
+        print(msg)
 
     def get_snapshot(self, reg_status: Register, reg_ocmf: Register):
         self._modbus_controller.write_reg(

@@ -1,6 +1,8 @@
+from typing import List
 from modbus_tk import modbus_rtu, defines, exceptions
 import serial
 from definitions import DataType, Register
+from ctypes import c_int16
 
 
 class ModbusController:
@@ -17,7 +19,7 @@ class ModbusController:
         print("connected")
 
     def _convert_from_uint16(self, data_type: DataType, data):
-        if data_type == DataType.INT16 or data_type == DataType.UINT16:
+        if data_type == DataType.UINT16:
             return data[0]
         elif data_type == DataType.UINT32:
             return data[0] * 2**16 + data[1]
@@ -29,6 +31,8 @@ class ModbusController:
             return string
         elif data_type == DataType.BLOB:
             return data
+        elif data_type == DataType.INT16:
+            return c_int16(data[0]).value
 
     def _convert_to_uint16(self, data, size):
         result = []
@@ -55,9 +59,17 @@ class ModbusController:
         print("{}: {}".format(reg.address, result))
         return result
 
-    def read_multiple(self, unit_id, reg_start: Register, reg_end: Register):
-        return self.client.execute(
-            unit_id, defines.READ_HOLDING_REGISTERS, reg_start.address, reg_end.address + reg_end.length - reg_start.address)
+    def read_multiple(self, unit_id, reg_list: List):
+
+        output = self.client.execute(
+            unit_id, defines.READ_HOLDING_REGISTERS, reg_list[0].address, reg_list[-1].address + reg_list[-1].length - reg_list[0].address)
+
+        result = []
+        for reg in reg_list:
+            result.append(self._convert_from_uint16(
+                reg.data_type, output[reg.address-reg_list[0].address:reg.address+reg.length-reg_list[0].address]))
+        return result
+
 
     def write_reg(self, unit_id, reg: Register, data):
         try:
