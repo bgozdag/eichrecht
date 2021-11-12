@@ -183,7 +183,6 @@ class Bauer(Device):
 
     def get_metrics(self):
         regs = [
-            Description.CURRENT,
             Description.CURRENT_L1,
             Description.CURRENT_L2,
             Description.CURRENT_L3,
@@ -192,7 +191,6 @@ class Bauer(Device):
             Description.VOLTAGE_L2,
             Description.VOLTAGE_L3,
             Description.VOLTAGE_EXP,
-            Description.POWER,
             Description.POWER_L1,
             Description.POWER_L2,
             Description.POWER_L3,
@@ -204,13 +202,32 @@ class Bauer(Device):
         output = self._modbus_controller.read_multiple(
             self.UNIT_ID, reg_list)
         output = dict(zip([desc.value for desc in regs], output))
-        data = []
-        
-        msg = {
-            "type": "metricsEvent",
-            "data": []
-        }
-        print(msg)
+
+        current_exp = output[Description.CURRENT_EXP.value]
+        voltage_exp = output[Description.VOLTAGE_EXP.value]
+        power_exp = output[Description.POWER_EXP.value]
+        energy_exp = output[Description.ENERGY_EXP.value]
+
+        del output[Description.CURRENT_EXP.value]
+        del output[Description.VOLTAGE_EXP.value]
+        del output[Description.POWER_EXP.value]
+        del output[Description.ENERGY_EXP.value]
+
+        output[Description.CURRENT_L1.value] = int(output[Description.CURRENT_L1.value] * (10 ** current_exp) * 1000)
+        output[Description.CURRENT_L2.value] = int(output[Description.CURRENT_L2.value] * (10 ** current_exp) * 1000)
+        output[Description.CURRENT_L3.value] = int(output[Description.CURRENT_L3.value] * (10 ** current_exp) * 1000)
+
+        output[Description.VOLTAGE_L1.value] = int(output[Description.VOLTAGE_L1.value] * (10 ** voltage_exp) * 1000)
+        output[Description.VOLTAGE_L2.value] = int(output[Description.VOLTAGE_L2.value] * (10 ** voltage_exp) * 1000)
+        output[Description.VOLTAGE_L3.value] = int(output[Description.VOLTAGE_L3.value] * (10 ** voltage_exp) * 1000)
+
+        output[Description.POWER_L1.value] = int(output[Description.POWER_L1.value] * (10 ** power_exp))
+        output[Description.POWER_L2.value] = int(output[Description.POWER_L2.value] * (10 ** power_exp))
+        output[Description.POWER_L3.value] = int(output[Description.POWER_L3.value] * (10 ** power_exp))
+
+        output[Description.ENERGY.value] = int(output[Description.ENERGY.value] * (10 ** energy_exp))
+
+        return output
 
     def get_snapshot(self, reg_status: Register, reg_ocmf: Register):
         self._modbus_controller.write_reg(

@@ -27,7 +27,11 @@ class Application(Component):
     def run(self):
         self.send_public_key()
         while True:
-            msg = self.device.get_metrics()
+            metrics = self.device.get_metrics()
+            msg = {
+                "type": "metricsEvent",
+                "data": metrics
+            }
             self.notify(json.dumps(msg))
 
     def send_public_key(self):
