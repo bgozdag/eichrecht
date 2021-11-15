@@ -16,16 +16,22 @@ class Application(Component):
         self._mediator.notify(message, self)
 
     def receive(self, message):
-        print("{} received: {}".format(__class__.__name__, message))
-        data = json.loads(message)
-        if data["type"] == "ChargeSessionStatus":
-            if data["status"] == "Started":
-                self.send_start_snapshot()
-            elif data["status"] == "Stopped":
-                self.send_end_snapshot()
+        try:
+            data = json.loads(message)
+            if data["type"] == "ChargeSessionStatus":
+                if data["status"] == "Started":
+                    self.send_start_snapshot()
+                elif data["status"] == "Stopped":
+                    self.send_end_snapshot()
+            elif data["type"] == "getPublicKey":
+                self.device.get_public_key()
+            elif data["type"] == "getCurrentSnapshot":
+                self.send_current_snapshot()
+            
+        except Exception as e:
+            print(e)
 
     def run(self):
-        self.send_public_key()
         while True:
             metrics = self.device.get_metrics()
             msg = {
