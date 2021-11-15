@@ -83,7 +83,7 @@ class Bauer(Device):
     MAX_BAUD_RATE = 115200
     PORT = "/dev/ttyO2"
     BYTESIZE = 8
-    UNIT_ID = 44
+    UNIT_ID = 42
     TIMEOUT = 15
     PARITY = 'E'
     STOPBITS = 1
