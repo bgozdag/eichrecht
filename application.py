@@ -45,7 +45,7 @@ class Application(Component):
         try:
             ocmf = self.device.get_snapshot(reg_status, reg_ocmf)
             msg = {
-                "type": "OCMF",
+                "type": self.device.get_description(reg_ocmf).value,
                 "data": ocmf
             }
             self.notify(json.dumps(msg))

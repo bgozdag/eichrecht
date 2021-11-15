@@ -52,6 +52,11 @@ class Device(ABC):
     def registers():
         raise NotImplementedError
 
+    @property
+    @abstractmethod
+    def get_description():
+        raise NotImplementedError
+
     @abstractmethod
     def metrics_start(self):
         raise NotImplementedError
@@ -138,6 +143,11 @@ class Bauer(Device):
             self.set_time()
             self.set_meta("BUGRA")
 
+    def get_description(self, reg: Register):
+        for desc, x in self.registers.items():
+            if x == reg:
+                return desc
+
     def metrics_start(self):
         return self.registers.get(Description.CURRENT)
 
@@ -213,19 +223,29 @@ class Bauer(Device):
         del output[Description.POWER_EXP.value]
         del output[Description.ENERGY_EXP.value]
 
-        output[Description.CURRENT_L1.value] = int(output[Description.CURRENT_L1.value] * (10 ** current_exp) * 1000)
-        output[Description.CURRENT_L2.value] = int(output[Description.CURRENT_L2.value] * (10 ** current_exp) * 1000)
-        output[Description.CURRENT_L3.value] = int(output[Description.CURRENT_L3.value] * (10 ** current_exp) * 1000)
+        output[Description.CURRENT_L1.value] = int(
+            output[Description.CURRENT_L1.value] * (10 ** current_exp) * 1000)
+        output[Description.CURRENT_L2.value] = int(
+            output[Description.CURRENT_L2.value] * (10 ** current_exp) * 1000)
+        output[Description.CURRENT_L3.value] = int(
+            output[Description.CURRENT_L3.value] * (10 ** current_exp) * 1000)
 
-        output[Description.VOLTAGE_L1.value] = int(output[Description.VOLTAGE_L1.value] * (10 ** voltage_exp) * 1000)
-        output[Description.VOLTAGE_L2.value] = int(output[Description.VOLTAGE_L2.value] * (10 ** voltage_exp) * 1000)
-        output[Description.VOLTAGE_L3.value] = int(output[Description.VOLTAGE_L3.value] * (10 ** voltage_exp) * 1000)
+        output[Description.VOLTAGE_L1.value] = int(
+            output[Description.VOLTAGE_L1.value] * (10 ** voltage_exp) * 1000)
+        output[Description.VOLTAGE_L2.value] = int(
+            output[Description.VOLTAGE_L2.value] * (10 ** voltage_exp) * 1000)
+        output[Description.VOLTAGE_L3.value] = int(
+            output[Description.VOLTAGE_L3.value] * (10 ** voltage_exp) * 1000)
 
-        output[Description.POWER_L1.value] = int(output[Description.POWER_L1.value] * (10 ** power_exp))
-        output[Description.POWER_L2.value] = int(output[Description.POWER_L2.value] * (10 ** power_exp))
-        output[Description.POWER_L3.value] = int(output[Description.POWER_L3.value] * (10 ** power_exp))
+        output[Description.POWER_L1.value] = int(
+            output[Description.POWER_L1.value] * (10 ** power_exp))
+        output[Description.POWER_L2.value] = int(
+            output[Description.POWER_L2.value] * (10 ** power_exp))
+        output[Description.POWER_L3.value] = int(
+            output[Description.POWER_L3.value] * (10 ** power_exp))
 
-        output[Description.ENERGY.value] = int(output[Description.ENERGY.value] * (10 ** energy_exp))
+        output[Description.ENERGY.value] = int(
+            output[Description.ENERGY.value] * (10 ** energy_exp))
 
         return output
 
