@@ -60,28 +60,19 @@ class ModbusController:
         return result
 
     def read_multiple(self, unit_id, reg_list: List):
-
         output = self.client.execute(
             unit_id, defines.READ_HOLDING_REGISTERS, reg_list[0].address, reg_list[-1].address + reg_list[-1].length - reg_list[0].address)
-
         result = []
         for reg in reg_list:
             result.append(self._convert_from_uint16(
                 reg.data_type, output[reg.address-reg_list[0].address:reg.address+reg.length-reg_list[0].address]))
         return result
 
-
     def write_reg(self, unit_id, reg: Register, data):
-        try:
-            print("Writing '{}' to: {}".format(data, reg.address))
-            self.client.execute(unit_id, defines.WRITE_MULTIPLE_REGISTERS,
-                                reg.address, output_value=self._convert_to_uint16(data, reg.length))
-        except exceptions.ModbusError as e:
-            print(e)
+        print("Writing '{}' to: {}".format(data, reg.address))
+        self.client.execute(unit_id, defines.WRITE_MULTIPLE_REGISTERS,
+                            reg.address, output_value=self._convert_to_uint16(data, reg.length))
 
     def write_multiple(self, unit_id, reg_start: Register, data):
-        try:
-            self.client.execute(
-                unit_id, defines.WRITE_MULTIPLE_REGISTERS, reg_start.address, output_value=data)
-        except exceptions.ModbusError as e:
-            print(e)
+        self.client.execute(
+            unit_id, defines.WRITE_MULTIPLE_REGISTERS, reg_start.address, output_value=data)

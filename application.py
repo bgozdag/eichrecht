@@ -13,13 +13,38 @@ VFACTORY_DATABASE = "/run/media/mmcblk1p3/vfactory.db"
 class Application(Component):
 
     def __init__(self, mediator: Mediator) -> None:
+        self.error = False
         if not self.is_enabled():
             sys.exit("Disabled from vfactory")
         self._mediator = mediator
-        self.device = Bauer()
+        self.device = None
 
     def notify(self, message):
         self._mediator.notify(message, self)
+
+    def connect_device(self):
+        while True:
+            try:
+                self.device = Bauer()
+                self.set_error(False)
+                break
+            except:
+                self.set_error(True)
+
+    def set_error(self, value):
+        if self.error is True and value is False:
+            msg = {
+                "type": "midConnection",
+                "data": "ConnectionRecovered"
+            }
+            self.notify(json.dumps(msg))
+        elif self.error is False and value is True:
+            msg = {
+                "type": "midConnection",
+                "data": "ConnectionLost"
+            }
+            self.notify(json.dumps(msg))
+        self.error = value
 
     def receive(self, message):
         try:
@@ -36,18 +61,29 @@ class Application(Component):
         except Exception as e:
             print(e)
 
-    def run(self):
+    def start_query_metrics(self):
         while True:
-            metrics = self.device.get_metrics()
-            for msg in metrics:
-                self.notify(json.dumps(msg))
+            try:
+                metrics = self.device.get_metrics()
+                self.set_error(False)
+                for msg in metrics:
+                    self.notify(json.dumps(msg))
+            except:
+                self.set_error(True)
+
+    def run(self):
+        self.connect_device()
+        self.start_query_metrics()
 
     def send_public_key(self):
-        msg = {
-            "type": "publicKey",
-            "data": self.device.get_public_key()
-        }
-        self.notify(json.dumps(msg))
+        try:
+            msg = {
+                "type": "publicKey",
+                "data": self.device.get_public_key()
+            }
+            self.notify(json.dumps(msg))
+        except Exception as e:
+            print(e)
 
     def send_snapshot(self, reg_status: Register, reg_ocmf: Register):
         try:
