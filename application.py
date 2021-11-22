@@ -4,11 +4,17 @@ from threading import Thread
 from mediator import Mediator
 from component import Component
 import json
+import sqlite3
+import sys
+
+VFACTORY_DATABASE = "/run/media/mmcblk1p3/vfactory.db"
 
 
 class Application(Component):
 
     def __init__(self, mediator: Mediator) -> None:
+        if not self.is_enabled():
+            sys.exit("Disabled from vfactory")
         self._mediator = mediator
         self.device = Bauer()
 
@@ -27,7 +33,6 @@ class Application(Component):
                 self.device.get_public_key()
             elif data["type"] == "getCurrentSnapshot":
                 self.send_current_snapshot()
-            
         except Exception as e:
             print(e)
 
@@ -69,3 +74,18 @@ class Application(Component):
         snapshot_t = Thread(target=self.send_snapshot, args=(
             self.device.registers.get(Description.END_SNAPSHOT_STATUS), self.device.registers.get(Description.END_OCMF)), daemon=True)
         snapshot_t.start()
+
+    @staticmethod
+    def is_enabled():
+        try:
+            conn = sqlite3.connect(VFACTORY_DATABASE, timeout=10.0)
+            cursor = conn.cursor()
+            query = "SELECT meterType FROM deviceDetails WHERE ID=1"
+            cursor.execute(query)
+            meter_type = cursor.fetchone()
+            conn.close()
+            if meter_type[0] == "Eichrecht":
+                return True
+            return False
+        except:
+            return False
