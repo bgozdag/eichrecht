@@ -218,36 +218,49 @@ class Bauer(Device):
         power_exp = output[Description.POWER_EXP.value]
         energy_exp = output[Description.ENERGY_EXP.value]
 
-        del output[Description.CURRENT_EXP.value]
-        del output[Description.VOLTAGE_EXP.value]
-        del output[Description.POWER_EXP.value]
-        del output[Description.ENERGY_EXP.value]
-
-        output[Description.CURRENT_L1.value] = int(
+        current = {
+            "type": "currentEvent",
+            "data": {}
+        }
+        current["data"]["P1"] = int(
             output[Description.CURRENT_L1.value] * (10 ** current_exp) * 1000)
-        output[Description.CURRENT_L2.value] = int(
+        current["data"]["P2"] = int(
             output[Description.CURRENT_L2.value] * (10 ** current_exp) * 1000)
-        output[Description.CURRENT_L3.value] = int(
+        current["data"]["P3"] = int(
             output[Description.CURRENT_L3.value] * (10 ** current_exp) * 1000)
 
-        output[Description.VOLTAGE_L1.value] = int(
+        voltage = {
+            "type": "voltageEvent",
+            "data": {}
+            }
+        voltage["data"]["P1"] = int(
             output[Description.VOLTAGE_L1.value] * (10 ** voltage_exp) * 1000)
-        output[Description.VOLTAGE_L2.value] = int(
+        voltage["data"]["P2"] = int(
             output[Description.VOLTAGE_L2.value] * (10 ** voltage_exp) * 1000)
-        output[Description.VOLTAGE_L3.value] = int(
+        voltage["data"]["P3"] = int(
             output[Description.VOLTAGE_L3.value] * (10 ** voltage_exp) * 1000)
 
-        output[Description.POWER_L1.value] = int(
+        power = {
+            "type": "activePowerEvent",
+            "data": {}
+            }
+        power["data"]["P1"] = int(
             output[Description.POWER_L1.value] * (10 ** power_exp))
-        output[Description.POWER_L2.value] = int(
+        power["data"]["P2"] = int(
             output[Description.POWER_L2.value] * (10 ** power_exp))
-        output[Description.POWER_L3.value] = int(
+        power["data"]["P3"] = int(
             output[Description.POWER_L3.value] * (10 ** power_exp))
 
-        output[Description.ENERGY.value] = int(
+        energy = {
+            "type": "totalEnergyEvent",
+            "data": {}
+            }
+        energy["data"]["P1"] = int(
             output[Description.ENERGY.value] * (10 ** energy_exp))
+        energy["data"]["P2"] = 0
+        energy["data"]["P3"] = 0
 
-        return output
+        return [current, voltage, power, energy]
 
     def get_snapshot(self, reg_status: Register, reg_ocmf: Register):
         self._modbus_controller.write_reg(
